@@ -1,6 +1,6 @@
 // teller.js
-var jsonStream = require("duplex-json-stream")
-var net = require("net")
+const jsonStream = require("duplex-json-stream")
+const net = require("net")
 const sodium = require("sodium-native")
 const fs = require("fs")
 
