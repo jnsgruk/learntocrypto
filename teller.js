@@ -48,7 +48,7 @@ const signMessage = message => {
 // Create a teller
 var client = jsonStream(net.connect(3876))
 
-client.on("data", function (msg) {
+client.on("data", function(msg) {
   msg = JSON.parse(msg)
   console.log(msg)
   if (msg.hash) writeLastHash(msg.hash, msg.customerId)

@@ -25,7 +25,7 @@ const hashToHex = value => {
   return output.toString("hex")
 }
 // Append a new transaction with its hash and value
-const appendToTransactionLog = (entry) => {
+const appendToTransactionLog = entry => {
   // Create generate hash in case this is the first entry
   const genesisHash = Buffer.alloc(32).toString("hex")
   // Get previous hash if exists, if not use genesis
@@ -55,16 +55,9 @@ const writeTransactionLog = () => {
   // Generate nonce and place in buffer
   sodium.randombytes_buf(nonce)
   // Create cipher buffer
-  let cipher = Buffer.alloc(
-    logString.length + sodium.crypto_secretbox_MACBYTES
-  )
+  let cipher = Buffer.alloc(logString.length + sodium.crypto_secretbox_MACBYTES)
   // Encrypt JSON version of log
-  sodium.crypto_secretbox_easy(
-    cipher,
-    Buffer.from(logString),
-    nonce,
-    secretKey
-  )
+  sodium.crypto_secretbox_easy(cipher, Buffer.from(logString), nonce, secretKey)
   // Create output dictionary with ciphertext and nonce
   let output = {
     cipherText: cipher.toString("base64"),
@@ -81,7 +74,9 @@ const validateLogChain = log => {
   log.map((current, index, array) => {
     // First verify the hash is correct by re-generating and comparing
     // Use last hash if exists, if not use genesis hash
-    let previousHash = index ? array[index - 1].hash : Buffer.alloc(32).toString("hex")
+    let previousHash = index
+      ? array[index - 1].hash
+      : Buffer.alloc(32).toString("hex")
     // Regenerate hash of previous hash plus current block
     let hash = hashToHex(previousHash + JSON.stringify(current.value))
     // If hashes don't match, exit.
@@ -102,9 +97,11 @@ const validateLogChain = log => {
 // Filter the log chain to ascertain whether a specific user has registered
 const checkCustomerExists = customerId => {
   // Filter log to get register events for specific customerId
-  return log.filter(e =>
-    e.value.cmd === "register" && e.value.customerId === customerId
-  ).length > 0
+  return (
+    log.filter(
+      e => e.value.cmd === "register" && e.value.customerId === customerId
+    ).length > 0
+  )
 }
 
 const validateSignature = msg => {
@@ -129,14 +126,14 @@ const validateSignature = msg => {
 // Traverse log chain to get balance for a specific customer
 const getBalance = customerId => {
   // Filter for all deposit/withdrawal events for a specific customer
-  const balanceEvents = log.filter(e =>
-    e.value.cmd !== "register" && e.value.customerId === customerId
+  const balanceEvents = log.filter(
+    e => e.value.cmd !== "register" && e.value.customerId === customerId
   )
   return balanceEvents.reduce(reduceLog, 0)
 }
 
 // Takes a log file in, and decrypts with specified secret key
-const decryptFile = (path) => {
+const decryptFile = path => {
   // Check if logfile exists, if not return blank array
   if (!fs.existsSync(path)) return []
   // Import log in encrypted form
@@ -154,7 +151,9 @@ const decryptFile = (path) => {
     secretKey
   )
   // Display a message
-  console.log(success ? "Log file decrypted!" : "Log file could not be decrypted!")
+  console.log(
+    success ? "Log file decrypted!" : "Log file could not be decrypted!"
+  )
   // Return decrypted log is success, else exit
   return success ? JSON.parse(logString.toString()) : process.exit(1)
 }
@@ -202,7 +201,7 @@ const getKeys = path => {
   }
 }
 
-const processCommand = (msg) => {
+const processCommand = msg => {
   let hash = null
 
   switch (msg.cmd) {
@@ -268,13 +267,17 @@ validateLogChain(log)
 // Load or generate private/public key pair
 let { privateKey, publicKey } = getKeys("./keys.json")
 
-var server = net.createServer(function (socket) {
+var server = net.createServer(function(socket) {
   s = jsonStream(socket)
-  s.on("data", function (msg) {
+  s.on("data", function(msg) {
     console.log(msg)
     // For all operations other than register, validate signature
     if (msg.message.cmd !== "register" && !validateSignature(msg)) {
-      socketSend(s, { cmd: "error", msg: "Check user ID! Signature invalid! Are you trying to replay a message?" })
+      socketSend(s, {
+        cmd: "error",
+        msg:
+          "Check user ID! Signature invalid! Are you trying to replay a message?",
+      })
     } else {
       socketSend(s, processCommand(msg.message))
     }
