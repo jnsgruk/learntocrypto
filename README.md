@@ -30,6 +30,11 @@ $ node teller.js register
 
 - Make sure to copy those customerID and customerSecret values somewhere safe, perhaps store them in shell variables.
 
+```
+$ customerID='SOME_ID'
+$ customerSecret='SOME_SECRET'
+```
+
 - Now you're ready to make some transactions, or check your balance!
 
 ```
